@@ -3,6 +3,13 @@ on:
   push:
     tags:
       - '*'
+env:
+  # Use docker.io for Docker Hub if empty
+  # REGISTRY: registry.us-west-1.aliyuncs.com
+  # REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY  || 'quay.io' }}
+  DOCKER_USER: ${{ secrets.DOCKER_USER }} # For safty consideration, passing registry password by github action secrets is needed.
+  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }} 
 
 permissions:
   contents: write
@@ -19,7 +26,7 @@ jobs:
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ROWEB_TOKEN: ${{ secrets.ROWEB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
@@ -42,7 +49,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Update Dockerfile FROM org
         run: sed -i.bak "s/FROM.*/FROM ${ORG}\/github-runner-base:latest/" Dockerfile
-      - name: Login to DockerHub
+      - name: Login to ${{ env.DOCKER_REGISTRY }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
@@ -53,7 +60,7 @@ jobs:
       #   with:
       #     registry: quay.io
       #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+      #     password: ${{ secrets.ROWEB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -87,9 +94,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Copy Dockerfile
         run: cp Dockerfile Dockerfile.ubuntu-${{ matrix.release }}; sed -i.bak "s/FROM.*/FROM ${ORG}\/github-runner-base:ubuntu-${{ matrix.release }}/" Dockerfile.ubuntu-${{ matrix.release }}
-      - name: Login to DockerHub
+      - name: Login to ${{ env.DOCKER_REGISTRY }}
         uses: docker/login-action@v3
         with:
+          registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
       # - name: Login to GitHub Container Registry
@@ -97,7 +105,7 @@ jobs:
       #   with:
       #     registry: ghcr.io
       #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+      #     password: ${{ secrets.ROWEB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -131,17 +139,18 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Copy Dockerfile
         run: cp Dockerfile Dockerfile.debian-${{ matrix.release }}; sed -i.bak "s/FROM.*/FROM ${ORG}\/github-runner-base:debian-${{ matrix.release }}/" Dockerfile.debian-${{ matrix.release }}
-      - name: Login to DockerHub
+      - name: Login to ${{ env.DOCKER_REGISTRY }}
         uses: docker/login-action@v3
         with:
+          registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Login to GitHub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.ROWEB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
