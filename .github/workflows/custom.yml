@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - '*'
+    branches: [ "main", "master" ]
 env:
   # Use docker.io for Docker Hub if empty
   # REGISTRY: registry.us-west-1.aliyuncs.com
@@ -22,16 +23,16 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        ROWEB_TOKEN: ${{ secrets.ROWEB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
+    # - name: Create Release
+    #   id: create_release
+    #   uses: actions/create-release@v1
+    #   env:
+    #     ROWEB_TOKEN: ${{ secrets.ROWEB_TOKEN }}
+    #   with:
+    #     tag_name: ${{ github.ref }}
+    #     release_name: Release ${{ github.ref }}
+    #     draft: false
+    #     prerelease: false
 
   ubuntu_latest_tag:
     runs-on: ubuntu-latest
